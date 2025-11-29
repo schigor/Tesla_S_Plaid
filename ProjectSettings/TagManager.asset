@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - Ground
+  - Trap
   layers:
   - Default
   - TransparentFX
@@ -39,6 +40,9 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Background
+    uniqueID: 2197206477
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0

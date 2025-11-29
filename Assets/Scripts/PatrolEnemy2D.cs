@@ -14,10 +14,9 @@ public class PatrolEnemy2D : MonoBehaviour
     private Rigidbody2D rb;
     private bool facingRight;
 
-    [Header("Zmieniane przez czas")]
     private float timeModifier = 1.0f;
-    public Transform player;
-    public float range = 5f; // Zwiększyłem domyślnie, 1f to bardzo blisko
+    private Transform player;
+    private float range;
 
     void Start()
     {
@@ -50,22 +49,26 @@ public class PatrolEnemy2D : MonoBehaviour
 
     void FixedUpdate()
     {
-     
 
-        // 2. Sprawdzamy odległość do gracza (jeśli gracz istnieje)
-        if (player != null)
+
+        if (GlobalTimeManager.Instance != null)
         {
-            float distance = Vector2.Distance(transform.position, player.position);
-
-            // JEŚLI gracz jest w zasięgu -> pobieramy "zepsuty" czas
-            if (distance <= range)
+            player = GlobalTimeManager.Instance.player;
+            range = GlobalTimeManager.Instance.range;
+           
+            if (player != null)
             {
-                if (GlobalTimeManager.Instance != null)
+                float distance = Vector2.Distance(transform.position, player.position);
+
+                // JEŚLI gracz jest w zasięgu -> pobieramy "zepsuty" czas
+                if (distance <= range)
                 {
                     timeModifier = GlobalTimeManager.Instance.gameTimeMultiplier;
                 }
             }
         }
+        // 2. Sprawdzamy odległość do gracza (jeśli gracz istnieje)
+       
 
         // 3. Ustal kierunek
         float direction = facingRight ? 1 : -1;

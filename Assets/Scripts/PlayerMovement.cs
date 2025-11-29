@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
 
+[RequireComponent(typeof(SpriteRenderer))] // Wymaga komponentu SpriteRenderer
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Ustawienia Ruchu")]
@@ -32,17 +33,27 @@ public class PlayerMovement : MonoBehaviour
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI timeSpeedText;
 
+    // --- NOWE: Sekcja Animacji ---
+    [Header("Animacje (Sprite'y)")]
+    [SerializeField] private Sprite idleSprite;      // Stoi
+    [SerializeField] private Sprite runSprite;       // Biegnie
+    [SerializeField] private Sprite jumpSprite;      // Skacze
+    [SerializeField] private Sprite wallSlideSprite; // Ślizga się po ścianie (opcjonalne)
+
+    private SpriteRenderer spriteRenderer;
+    // -----------------------------
+
     private Rigidbody2D rb;
     private float horizontalInput;
     private bool jumpRequested;
-    
+
     private bool isGrounded;
     private bool isFacingRight = true;
     private bool isTouchingWall;
     private bool isWallSliding;
     private float wallJumpLockTimer;
     private float currentVelocityX;
-    
+
     // 0 = Slow, 1 = Normal, 2 = Fast
     private int currentTimeState = 1;
     private float targetTimeMultiplier = 1.0f;
@@ -50,6 +61,9 @@ public class PlayerMovement : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        // Pobieramy SpriteRenderer, żeby móc zmieniać obrazki
+        spriteRenderer = GetComponent<SpriteRenderer>();
+
         rb.gravityScale = 1f;
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
     }
@@ -61,7 +75,7 @@ public class PlayerMovement : MonoBehaviour
         // RUCH - WASD
         float moveLeft = Keyboard.current.aKey.isPressed ? -1f : 0f;
         float moveRight = Keyboard.current.dKey.isPressed ? 1f : 0f;
-        
+
         if (wallJumpLockTimer <= 0)
         {
             horizontalInput = moveLeft + moveRight;
@@ -97,17 +111,46 @@ public class PlayerMovement : MonoBehaviour
             targetTimeMultiplier,
             timeTransitionSpeed * Time.deltaTime
         );
-        
+
         if (GlobalTimeManager.Instance != null)
             GlobalTimeManager.Instance.gameTimeMultiplier = currentTimeMultiplier;
 
         if (timeSpeedText != null)
             timeSpeedText.text = $"Speed: {currentTimeMultiplier:F2}x";
 
-        if (isGrounded) 
+        // Odwracanie postaci (Flip)
+        if (horizontalInput > 0 && !isFacingRight) Flip();
+        if (horizontalInput < 0 && isFacingRight) Flip();
+
+        // --- NOWE: Wywołanie funkcji animacji w każdej klatce ---
+        HandleAnimations();
+    }
+
+    // --- NOWE: Logika zmiany Sprite'ów ---
+    private void HandleAnimations()
+    {
+        if (spriteRenderer == null) return;
+
+        // 1. Priorytet: Ślizganie po ścianie
+        if (isWallSliding)
         {
-            if (horizontalInput > 0 && !isFacingRight) Flip();
-            if (horizontalInput < 0 && isFacingRight) Flip();
+            if (wallSlideSprite != null) spriteRenderer.sprite = wallSlideSprite;
+            else if (jumpSprite != null) spriteRenderer.sprite = jumpSprite; // Fallback
+        }
+        // 2. Priorytet: Skakanie / Spadanie (gdy nie jest na ziemi)
+        else if (!isGrounded)
+        {
+            if (jumpSprite != null) spriteRenderer.sprite = jumpSprite;
+        }
+        // 3. Priorytet: Bieganie (jest na ziemi i wciśnięto klawisz ruchu)
+        else if (Mathf.Abs(horizontalInput) > 0.1f)
+        {
+            if (runSprite != null) spriteRenderer.sprite = runSprite;
+        }
+        // 4. Priorytet: Stanie w miejscu (jest na ziemi, brak ruchu)
+        else
+        {
+            if (idleSprite != null) spriteRenderer.sprite = idleSprite;
         }
     }
 
@@ -116,7 +159,6 @@ public class PlayerMovement : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("MovingPlatform"))
         {
-            // Ustawiamy platformę jako rodzica gracza
             transform.SetParent(collision.transform);
         }
     }
@@ -126,7 +168,6 @@ public class PlayerMovement : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("MovingPlatform"))
         {
-            // Usuwamy rodzica (gracz wraca do "świata")
             transform.SetParent(null);
         }
     }
@@ -136,16 +177,15 @@ public class PlayerMovement : MonoBehaviour
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, groundCheckRadius, wallLayer);
 
-        // PLAYER ZAWSZE MA NORMALNY CZAS - BRAK MNOŻNIKA
         bool wasWallSliding = isWallSliding;
-        isWallSliding = isTouchingWall && !isGrounded;
+        isWallSliding = isTouchingWall && !isGrounded && rb.linearVelocity.y < 0; // Dodano warunek, że musi spadać, by się ślizgać
 
         if (isWallSliding)
         {
             currentVelocityX = 0f;
             if (!wasWallSliding && rb.linearVelocity.y > 0)
                 rb.linearVelocity = new Vector2(0f, 0f);
-            
+
             rb.linearVelocity = new Vector2(0f, -wallSlideSpeed);
         }
         else
@@ -153,11 +193,17 @@ public class PlayerMovement : MonoBehaviour
             if (isGrounded)
             {
                 float targetVelocity = horizontalInput * moveSpeed;
-                
+
                 if (Mathf.Abs(targetVelocity) > 0.01f)
                     currentVelocityX = Mathf.Lerp(currentVelocityX, targetVelocity, acceleration * Time.fixedDeltaTime);
                 else
                     currentVelocityX = Mathf.Lerp(currentVelocityX, 0f, friction * Time.fixedDeltaTime);
+            }
+            // Pozwalamy na pewną kontrolę w powietrzu
+            else if (wallJumpLockTimer <= 0)
+            {
+                float targetVelocity = horizontalInput * moveSpeed;
+                currentVelocityX = Mathf.Lerp(currentVelocityX, targetVelocity, (acceleration * 0.5f) * Time.fixedDeltaTime);
             }
 
             rb.linearVelocity = new Vector2(currentVelocityX, rb.linearVelocity.y);

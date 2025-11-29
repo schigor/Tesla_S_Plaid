@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
   m_Name: Platformer_Tileset_1_74
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.Tilemaps.Tile
-  m_Sprite: {fileID: -615090232, guid: 13fa5f9d9b4c78147b4c0153552e55d7, type: 3}
+  m_Sprite: {fileID: -1822315202, guid: 4e45799f10afcba4d9939160adb1b2d8, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1

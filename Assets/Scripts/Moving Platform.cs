@@ -24,7 +24,9 @@ public class MovingPlatform : MonoBehaviour
         if (isWaiting) return;
 
         // Ruch platformy
-        transform.position = Vector3.MoveTowards(transform.position, targetPos, speed * Time.deltaTime);
+
+        float timeMod = GlobalTimeManager.Instance != null ? GlobalTimeManager.Instance.CurrentTimeMultiplier : 1.0f;
+        transform.position = Vector3.MoveTowards(transform.position, targetPos, speed * Time.deltaTime*timeMod);
 
         // Sprawdzenie czy dotarliśmy
         if (Vector2.Distance(transform.position, targetPos) < 0.05f)

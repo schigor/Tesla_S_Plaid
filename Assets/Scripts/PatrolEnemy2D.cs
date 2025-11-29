@@ -37,10 +37,10 @@ public class PatrolEnemy2D : MonoBehaviour
     void FixedUpdate()
     {
         // Pobieramy modyfikator czasu z Twojego Managera (jeśli istnieje)
-        float timeMod = GlobalTimeManager.Instance != null ? GlobalTimeManager.Instance.CurrentTimeMultiplier : 1.0f;
 
         // Ustal kierunek (1 lub -1)
         float direction = facingRight ? 1 : -1;
+        float timeMod = GlobalTimeManager.Instance != null ? GlobalTimeManager.Instance.gameTimeMultiplier : 1.0f;
 
         // Ruch (używam linearVelocity tak jak w Twoim kodzie - to dla Unity 6. 
         // W starszych wersjach użyj rb.velocity)

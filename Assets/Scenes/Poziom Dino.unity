@@ -1243,6 +1243,14 @@ PrefabInstance:
       propertyPath: timeSpeedText
       value: 
       objectReference: {fileID: 1149106996}
+    - target: {fileID: 8083356863033729882, guid: 32778d7f5d5ac1b4588423e8804390c8, type: 3}
+      propertyPath: timeMultiplierFast
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083356863033729882, guid: 32778d7f5d5ac1b4588423e8804390c8, type: 3}
+      propertyPath: timeMultiplierSlow
+      value: 0.1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3134,7 +3142,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1077559822}
-  - component: {fileID: 1077559821}
+  - component: {fileID: 1077559823}
   m_Layer: 0
   m_Name: Time Manager
   m_TagString: Untagged
@@ -3142,26 +3150,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1077559821
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1077559820}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a8482768ef69b7d4e84823387a332906, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GlobalTimeManager
-  timeMultiplierText: {fileID: 0}
-  amplitudeText: {fileID: 0}
-  frequencyText: {fileID: 0}
-  baseTimeSpeed: 1
-  amplitudeGrowthRate: 0.05
-  maxAmplitude: 0.5
-  frequencyGrowthRate: 0.1
-  maxFrequency: 5
 --- !u!4 &1077559822
 Transform:
   m_ObjectHideFlags: 0
@@ -3177,6 +3165,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1077559823
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1077559820}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8482768ef69b7d4e84823387a332906, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GlobalTimeManager
+  timeMultiplierText: {fileID: 1149106996}
+  gameTimeMultiplier: 1
 --- !u!4 &1109621430 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7534173627156520978, guid: 32778d7f5d5ac1b4588423e8804390c8, type: 3}

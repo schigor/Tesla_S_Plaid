@@ -19,8 +19,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Transform wallCheck;
     [SerializeField] private LayerMask wallLayer;
     [SerializeField] private float wallSlideSpeed = 2f;
-    [SerializeField] private float wallJumpHorizontal = 10f; // Siła pozioma Wall Jumpa
-    [SerializeField] private float wallJumpVertical = 16f;   // Siła pionowa Wall Jumpa
+    [SerializeField] private float wallJumpHorizontal = 10f;
+    [SerializeField] private float wallJumpVertical = 16f;
     [SerializeField] private float wallJumpInputLockTime = 0.2f;
 
     [Header("Sterowanie Czasem")]
@@ -41,12 +41,11 @@ public class PlayerMovement : MonoBehaviour
     private bool isTouchingWall;
     private bool isWallSliding;
     private float wallJumpLockTimer;
-    private float currentVelocityX; // To jest nasza zapamiętana prędkość
+    private float currentVelocityX;
     
     // 0 = Slow, 1 = Normal, 2 = Fast
     private int currentTimeState = 1;
     private float targetTimeMultiplier = 1.0f;
-    private float currentTimeMultiplier = 1.0f;
 
     private void Awake()
     {
@@ -78,7 +77,7 @@ public class PlayerMovement : MonoBehaviour
             jumpRequested = true;
         }
 
-        // STEROWANIE CZASEM
+        // STEROWANIE CZASEM - Strzałki lewo/prawo
         if (Keyboard.current.leftArrowKey.wasPressedThisFrame)
             currentTimeState = Mathf.Max(currentTimeState - 1, 0);
         else if (Keyboard.current.rightArrowKey.wasPressedThisFrame)
@@ -92,16 +91,19 @@ public class PlayerMovement : MonoBehaviour
             _ => timeMultiplierNormal
         };
 
-        currentTimeMultiplier = Mathf.Lerp(currentTimeMultiplier, targetTimeMultiplier, timeTransitionSpeed * Time.deltaTime);
+        // Gładka zmiana czasu
+        float currentTimeMultiplier = Mathf.Lerp(
+            GlobalTimeManager.Instance != null ? GlobalTimeManager.Instance.gameTimeMultiplier : 1.0f,
+            targetTimeMultiplier,
+            timeTransitionSpeed * Time.deltaTime
+        );
         
         if (GlobalTimeManager.Instance != null)
-            GlobalTimeManager.Instance.baseTimeSpeed = currentTimeMultiplier;
+            GlobalTimeManager.Instance.gameTimeMultiplier = currentTimeMultiplier;
 
         if (timeSpeedText != null)
             timeSpeedText.text = $"Speed: {currentTimeMultiplier:F2}x";
 
-        // Flipowanie tylko na ziemi (opcjonalne, jeśli chcesz, by gracz nie mógł się też obracać w locie)
-        // Jeśli chcesz, by mógł się obracać wizualnie, ale nie zmieniać kierunku lotu, usuń warunek 'isGrounded'
         if (isGrounded) 
         {
             if (horizontalInput > 0 && !isFacingRight) Flip();
@@ -114,7 +116,7 @@ public class PlayerMovement : MonoBehaviour
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, groundCheckRadius, wallLayer);
 
-        float timeMod = currentTimeMultiplier;
+        // PLAYER ZAWSZE MA NORMALNY CZAS - BRAK MNOŻNIKA
         bool wasWallSliding = isWallSliding;
         isWallSliding = isTouchingWall && !isGrounded;
 
@@ -124,24 +126,19 @@ public class PlayerMovement : MonoBehaviour
             if (!wasWallSliding && rb.linearVelocity.y > 0)
                 rb.linearVelocity = new Vector2(0f, 0f);
             
-            rb.linearVelocity = new Vector2(0f, -wallSlideSpeed * timeMod);
+            rb.linearVelocity = new Vector2(0f, -wallSlideSpeed);
         }
         else
         {
-            // --- ZMIANA: BLOKADA STEROWANIA W LOCIE ---
-            
-            // Obliczamy nową prędkość TYLKO, gdy stoimy na ziemi.
-            // Gdy jesteśmy w powietrzu, 'currentVelocityX' zostaje bez zmian (czyli takie, jak przy wybiciu).
             if (isGrounded)
             {
-                float targetVelocity = horizontalInput * moveSpeed * timeMod;
+                float targetVelocity = horizontalInput * moveSpeed;
                 
                 if (Mathf.Abs(targetVelocity) > 0.01f)
                     currentVelocityX = Mathf.Lerp(currentVelocityX, targetVelocity, acceleration * Time.fixedDeltaTime);
                 else
                     currentVelocityX = Mathf.Lerp(currentVelocityX, 0f, friction * Time.fixedDeltaTime);
             }
-            // ELSE: Jesteśmy w powietrzu -> nie ruszamy 'currentVelocityX', zachowuje pęd z momentu skoku.
 
             rb.linearVelocity = new Vector2(currentVelocityX, rb.linearVelocity.y);
         }
@@ -163,18 +160,12 @@ public class PlayerMovement : MonoBehaviour
 
     private void PerformWallJump()
     {
-        // Obliczamy kierunek
         float jumpDirX = isFacingRight ? -wallJumpHorizontal : wallJumpHorizontal;
         float jumpDirY = wallJumpVertical;
 
-        // --- ZMIANA: Ustawiamy prędkość bezpośrednio ---
-        // Ponieważ w FixedUpdate blokujemy zmianę prędkości w locie, musimy tutaj
-        // "narzucić" nową prędkość (currentVelocityX), którą system będzie potem utrzymywał.
-        
-        currentVelocityX = jumpDirX; // Ustawiamy prędkość poziomą "na sztywno"
-        rb.linearVelocity = new Vector2(jumpDirX, jumpDirY); // Aplikujemy natychmiast
+        currentVelocityX = jumpDirX;
+        rb.linearVelocity = new Vector2(jumpDirX, jumpDirY);
 
-        // Obrót postaci w stronę skoku
         if (jumpDirX > 0 && !isFacingRight) Flip();
         if (jumpDirX < 0 && isFacingRight) Flip();
 

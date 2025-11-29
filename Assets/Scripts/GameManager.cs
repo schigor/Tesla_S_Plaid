@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 
-public class MenuController : MonoBehaviour
+public class GameManager : MonoBehaviour
 {
     // Miejsce, gdzie przypiszemy nasz tekst w Unity
     public TextMeshProUGUI myText; 

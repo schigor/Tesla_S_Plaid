@@ -1,12 +1,11 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // OBOWIĄZKOWE do zmiany scen
+using UnityEngine.SceneManagement;
 
 public class TutorialUI : MonoBehaviour
 {
-    // Funkcja, którą podepniemy pod trójkątny przycisk
     public void GoBackToMenu()
     {
-        // Upewnij się, że Twoja scena menu nazywa się DOKŁADNIE "Menu"
+        Debug.Log("ZADZIAŁAŁO! Próbuję zmienić scenę..."); // <--- To nam powie prawdę
         SceneManager.LoadScene("Menu");
     }
 }

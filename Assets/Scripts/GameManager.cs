@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
     public void StartGame()
     {
         // Upewnij się, że nazwa sceny jest DOKŁADNIE taka sama (wielkość liter ma znaczenie!)
-        SceneManager.LoadScene("Poziom Dino");
+        SceneManager.LoadScene("Poziom Dino.unity");
     }
 
     // Funkcja dla przycisku TUTORIAL

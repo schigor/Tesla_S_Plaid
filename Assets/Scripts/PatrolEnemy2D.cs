@@ -14,10 +14,25 @@ public class PatrolEnemy2D : MonoBehaviour
     private Rigidbody2D rb;
     private bool facingRight;
 
+    [Header("Zmieniane przez czas")]
+    private float timeModifier = 1.0f;
+    public Transform player;
+    public float range = 5f; // Zwiększyłem domyślnie, 1f to bardzo blisko
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         facingRight = startFacingRight;
+
+        // Jeśli zapomnisz przypisać gracza w inspektorze, spróbuj go znaleźć po Tagu
+        if (player == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+            {
+                player = playerObj.transform;
+            }
+        }
 
         // Jeśli ustawiliśmy, że nie patrzy w prawo, obróć go na starcie
         if (!facingRight)
@@ -30,34 +45,43 @@ public class PatrolEnemy2D : MonoBehaviour
 
     void Update()
     {
-        // Tutaj teraz tylko sprawdzamy, czy widzimy ścianę
         CheckForWall();
     }
 
     void FixedUpdate()
     {
-        // Pobieramy modyfikator czasu z Twojego Managera (jeśli istnieje)
-        float timeMod = GlobalTimeManager.Instance != null ? GlobalTimeManager.Instance.CurrentTimeMultiplier : 1.0f;
+     
 
-        // Ustal kierunek (1 lub -1)
+        // 2. Sprawdzamy odległość do gracza (jeśli gracz istnieje)
+        if (player != null)
+        {
+            float distance = Vector2.Distance(transform.position, player.position);
+
+            // JEŚLI gracz jest w zasięgu -> pobieramy "zepsuty" czas
+            if (distance <= range)
+            {
+                if (GlobalTimeManager.Instance != null)
+                {
+                    timeModifier = GlobalTimeManager.Instance.gameTimeMultiplier;
+                }
+            }
+        }
+
+        // 3. Ustal kierunek
         float direction = facingRight ? 1 : -1;
 
-        // Ruch (używam linearVelocity tak jak w Twoim kodzie - to dla Unity 6. 
-        // W starszych wersjach użyj rb.velocity)
-        rb.linearVelocity = new Vector2(direction * speed * timeMod, rb.linearVelocity.y);
+        // 4. Aplikujemy ruch z wyliczonym wyżej modyfikatorem
+        // Jeśli jest daleko, timeMod to 1. Jeśli blisko, timeMod to np. 0.5 lub 2.
+        rb.linearVelocity = new Vector2(direction * speed * timeModifier, rb.linearVelocity.y);
     }
 
     void CheckForWall()
     {
         if (wallCheck == null) return;
 
-        // Ustal kierunek sprawdzania (prawo lub lewo)
         Vector2 direction = facingRight ? Vector2.right : Vector2.left;
-
-        // Wystrzel promień (Raycast) z punktu wallCheck
         RaycastHit2D hit = Physics2D.Raycast(wallCheck.position, direction, wallCheckDistance, wallLayer);
 
-        // Jeśli promień w coś trafił (hit.collider nie jest pusty) -> ZAWRACAJ
         if (hit.collider != null)
         {
             Flip();
@@ -73,15 +97,18 @@ public class PatrolEnemy2D : MonoBehaviour
         transform.localScale = scale;
     }
 
-    // Rysuje linię w edytorze, żebyś widział zasięg wzroku przeciwnika
     void OnDrawGizmos()
     {
+        // Rysowanie wzroku (czerwona linia)
         if (wallCheck != null)
         {
             Gizmos.color = Color.red;
             Vector2 direction = facingRight ? Vector2.right : Vector2.left;
-            // Rysujemy linię od punktu sprawdzania w stronę, w którą patrzy
             Gizmos.DrawLine(wallCheck.position, wallCheck.position + (Vector3)(direction * wallCheckDistance));
         }
+
+        // Rysowanie zasięgu wpływu czasu (żółte kółko)
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, range);
     }
 }

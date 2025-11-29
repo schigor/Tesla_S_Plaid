@@ -13,22 +13,23 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float groundCheckRadius = 0.2f;
     [SerializeField] private LayerMask groundLayer;
 
-    [Header("Wall Jump System")]
-    [SerializeField] private Transform wallCheck;      // Punkt z przodu gracza
-    [SerializeField] private LayerMask wallLayer;      // Warstwa ścian
-    [SerializeField] private float wallSlidingSpeed = 2f; // Jak wolno zjeżdżamy
-    [SerializeField] private Vector2 wallJumpPower = new Vector2(8f, 16f); // Siła odbicia (X, Y)
-    [SerializeField] private float wallJumpDuration = 0.2f; // Czas blokady sterowania po odbiciu
+    [Header("Wall Slide System")]
+    [SerializeField] private Transform wallCheck;
+    [SerializeField] private LayerMask wallLayer;
+    [SerializeField] private float wallSlideSpeed = 2f;
+    [SerializeField] private float wallJumpHorizontal = 10f;
+    [SerializeField] private float wallJumpVertical = 16f;
+    [SerializeField] private float wallJumpInputLockTime = 0.2f;
 
     private Rigidbody2D rb;
     private float horizontalInput;
+    private bool jumpRequested;
+    
     private bool isGrounded;
     private bool isFacingRight = true;
-
-    // Zmienne do Wall Jumpa
     private bool isTouchingWall;
     private bool isWallSliding;
-    private bool isWallJumping;
+    private float wallJumpLockTimer;
 
     private void Awake()
     {
@@ -39,122 +40,108 @@ public class PlayerMovement : MonoBehaviour
     {
         if (Keyboard.current == null) return;
 
-        // 1. INPUT (Blokujemy input, jeśli właśnie wykonujemy Wall Jump)
-        if (!isWallJumping)
+        // INPUT
+        float moveLeft = Keyboard.current.aKey.isPressed ? -1f : 0f;
+        float moveRight = Keyboard.current.dKey.isPressed ? 1f : 0f;
+        
+        // Jeśli jesteśmy w wall jump lock, nie zmieniamy kierunku
+        if (wallJumpLockTimer <= 0)
         {
-            float moveLeft = Keyboard.current.aKey.isPressed ? -1f : 0f;
-            float moveRight = Keyboard.current.dKey.isPressed ? 1f : 0f;
             horizontalInput = moveLeft + moveRight;
         }
+        else
+        {
+            wallJumpLockTimer -= Time.deltaTime;
+        }
 
-        // 2. SKOK (Zwykły + Wall Jump)
+        // JUMP REQUEST
         if (Keyboard.current.wKey.wasPressedThisFrame || Keyboard.current.spaceKey.wasPressedThisFrame)
         {
-            if (isWallSliding)
-            {
-                WallJump();
-            }
-            else if (isGrounded)
-            {
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-            }
+            jumpRequested = true;
         }
 
-        // 3. Obsługa ślizgania po ścianie
-        CheckWallSlide();
-
-        // 4. Obracanie postaci (Tylko jeśli nie robimy Wall Jumpa)
-        if (!isWallJumping)
-        {
-            FlipSprite();
-        }
+        // OBRÓT
+        if (horizontalInput > 0 && !isFacingRight) Flip();
+        if (horizontalInput < 0 && isFacingRight) Flip();
     }
 
     private void FixedUpdate()
     {
-        // Wykrywanie kolizji
+        // WYKRYWANIE KOLIZJI
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-        
-        // Wykrywamy ścianę (trochę przed graczem)
         isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, groundCheckRadius, wallLayer);
 
-        // Standardowy ruch (tylko jeśli nie jesteśmy w trakcie sekwencji Wall Jumpa)
-        if (!isWallJumping)
-        {
-            // Jeśli ślizgamy się, to prędkość Y jest stała (powolna), jeśli nie - normalna fizyka
-            if (isWallSliding)
-            {
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Clamp(rb.linearVelocity.y, -wallSlidingSpeed, float.MaxValue));
-            }
-            else
-            {
-                // Tu dodajemy wsparcie dla Twojego TimeManagera (jeśli istnieje)
-                float timeMod = GlobalTimeManager.Instance != null ? GlobalTimeManager.Instance.CurrentTimeMultiplier : 1.0f;
-                rb.linearVelocity = new Vector2(horizontalInput * moveSpeed * timeMod, rb.linearVelocity.y);
-            }
-        }
-    }
+        float timeMod = GlobalTimeManager.Instance != null ? GlobalTimeManager.Instance.CurrentTimeMultiplier : 1.0f;
 
-    private void CheckWallSlide()
-    {
-        // Ślizgamy się tylko jeśli: dotykamy ściany, NIE jesteśmy na ziemi i input jest w stronę ściany
-        if (isTouchingWall && !isGrounded && horizontalInput != 0)
+        // LOGIKA WALL SLIDE
+        isWallSliding = isTouchingWall && !isGrounded && rb.linearVelocity.y <= 0;
+
+        // PRĘDKOŚĆ
+        if (isWallSliding)
         {
-            isWallSliding = true;
+            // Wall slide: powolne opadanie
+            rb.linearVelocity = new Vector2(horizontalInput * moveSpeed * timeMod, -wallSlideSpeed * timeMod);
+        }
+        else if (isGrounded)
+        {
+            // Zwykły ruch na ziemi
+            rb.linearVelocity = new Vector2(horizontalInput * moveSpeed * timeMod, rb.linearVelocity.y);
         }
         else
         {
-            isWallSliding = false;
+            // Powietrze - zachowaj poprzednią prędkość X jeśli nie ma inputu
+            if (horizontalInput != 0)
+            {
+                rb.linearVelocity = new Vector2(horizontalInput * moveSpeed * timeMod, rb.linearVelocity.y);
+            }
         }
-    }
 
-    private void WallJump()
-    {
-        isWallSliding = false; // Przerywamy ślizg
-        StartCoroutine(StopMove()); // Blokujemy input na chwilę
-
-        // Obliczamy kierunek odbicia (przeciwny do tego, gdzie patrzymy)
-        float jumpDirection = -horizontalInput; 
-        
-        // Aplikujemy siłę (W bok i w górę)
-        rb.linearVelocity = new Vector2(jumpDirection * wallJumpPower.x, wallJumpPower.y);
-
-        // Obracamy postać od razu, żeby wyglądało to naturalnie
-        if (transform.localScale.x != jumpDirection)
+        // SKOKI
+        if (jumpRequested)
         {
-            isFacingRight = !isFacingRight;
-            Vector3 localScale = transform.localScale;
-            localScale.x *= -1f;
-            transform.localScale = localScale;
+            if (isWallSliding)
+            {
+                PerformWallJump();
+            }
+            else if (isGrounded)
+            {
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce * timeMod);
+            }
+            jumpRequested = false;
         }
     }
 
-    // Korutyna blokująca sterowanie na ułamek sekundy
-    // To KLUCZOWE dla "game feel". Bez tego gracz natychmiast anulowałby skok wciskając klawisz w stronę ściany.
-    private IEnumerator StopMove()
+    private void PerformWallJump()
     {
-        isWallJumping = true;
-        yield return new WaitForSeconds(wallJumpDuration);
-        isWallJumping = false;
+        // Kierunek odbicia: przeciwny do kierunku w którym patrzymy
+        float jumpDirX = isFacingRight ? -wallJumpHorizontal : wallJumpHorizontal;
+        float jumpDirY = wallJumpVertical;
+
+        // Resetuj prędkość i aplikuj impuls
+        rb.linearVelocity = Vector2.zero;
+        rb.AddForce(new Vector2(jumpDirX, jumpDirY), ForceMode2D.Impulse);
+
+        // Natychmiastowy obrót w kierunku skoku
+        if (jumpDirX > 0 && !isFacingRight) Flip();
+        if (jumpDirX < 0 && isFacingRight) Flip();
+
+        // Zablokuj input na moment
+        wallJumpLockTimer = wallJumpInputLockTime;
     }
 
-    private void FlipSprite()
+    private void Flip()
     {
-        if (isFacingRight && horizontalInput < 0f || !isFacingRight && horizontalInput > 0f)
-        {
-            isFacingRight = !isFacingRight;
-            Vector3 localScale = transform.localScale;
-            localScale.x *= -1f;
-            transform.localScale = localScale;
-        }
+        isFacingRight = !isFacingRight;
+        Vector3 scale = transform.localScale;
+        scale.x *= -1f;
+        transform.localScale = scale;
     }
 
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
         if (groundCheck != null) Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
-        
-        Gizmos.color = Color.blue; // Niebieski dla ściany
+        Gizmos.color = Color.blue;
         if (wallCheck != null) Gizmos.DrawWireSphere(wallCheck.position, groundCheckRadius);
     }
 }

@@ -86,10 +86,10 @@ public class PlayerHealth : MonoBehaviour
         rb.linearVelocity = Vector2.zero;
 
         // 9. Resetujemy Chaos Czasu
-        if (GlobalTimeManager.Instance != null)
+        /*if (GlobalTimeManager.Instance != null)
         {
             GlobalTimeManager.Instance.ResetChaos();
-        }
+        }*/
 
         // 10. Sprzątamy UI i oddajemy sterowanie
         if (gameOverText != null) gameOverText.gameObject.SetActive(false);

@@ -2993,13 +2993,19 @@ MonoBehaviour:
   wallJumpVertical: 16
   wallJumpInputLockTime: 0.2
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 11e4c35b709ef7411a3b5965a5d6b1bc07237e1c
   timeMultiplierSlow: 0.25
   timeMultiplierNormal: 1
   timeMultiplierFast: 2
   timeTransitionSpeed: 5
   timeSpeedText: {fileID: 0}
+<<<<<<< HEAD
 =======
 >>>>>>> 0c4cbbbf76cb596880cf4242881371706056a9bd
+=======
+>>>>>>> 11e4c35b709ef7411a3b5965a5d6b1bc07237e1c
 --- !u!212 &986174344
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -4106,6 +4112,7 @@ SceneRoots:
   - {fileID: 132791651}
   - {fileID: 1077559822}
 <<<<<<< HEAD
+<<<<<<< HEAD
   - {fileID: 1623658847}
   - {fileID: 1734375328}
   - {fileID: 524630812}
@@ -4114,3 +4121,8 @@ SceneRoots:
   - {fileID: 2123837453}
   - {fileID: 130452849}
 >>>>>>> 0c4cbbbf76cb596880cf4242881371706056a9bd
+=======
+  - {fileID: 1623658847}
+  - {fileID: 1734375328}
+  - {fileID: 524630812}
+>>>>>>> 11e4c35b709ef7411a3b5965a5d6b1bc07237e1c

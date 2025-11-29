@@ -1852,7 +1852,7 @@ Rigidbody2D:
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_GravityScale: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 0c068a0dcbb413b42a79210456e39c50, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -3171,7 +3171,7 @@ Tilemap:
     second:
       serializedVersion: 2
       m_TileIndex: 0
-      m_TileSpriteIndex: 0
+      m_TileSpriteIndex: 1
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -3316,10 +3316,10 @@ Tilemap:
   - m_RefCount: 54
     m_Data: {fileID: 11400000, guid: 479d8546d858fd34cbb142c775afec65, type: 2}
   m_TileSpriteArray:
-  - m_RefCount: 1
-    m_Data: {fileID: 1394685157, guid: 4e45799f10afcba4d9939160adb1b2d8, type: 3}
   - m_RefCount: 0
     m_Data: {fileID: 0}
+  - m_RefCount: 1
+    m_Data: {fileID: 1394685157, guid: 4e45799f10afcba4d9939160adb1b2d8, type: 3}
   - m_RefCount: 3
     m_Data: {fileID: 1530229660, guid: 4e45799f10afcba4d9939160adb1b2d8, type: 3}
   - m_RefCount: 14

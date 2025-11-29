@@ -12,6 +12,10 @@ public class MovingPlatform : MonoBehaviour
     private Vector3 targetPos;
     private bool isWaiting = false; // Czy platforma aktualnie odpoczywa?
 
+    private Transform player;
+    private float range;
+    private float timeModifier = 1.0f;
+
     void Start()
     {
         transform.position = pointA.position;
@@ -24,9 +28,26 @@ public class MovingPlatform : MonoBehaviour
         if (isWaiting) return;
 
         // Ruch platformy
-        float timeMod = GlobalTimeManager.Instance != null ? GlobalTimeManager.Instance.gameTimeMultiplier : 1.0f;
+        float timeModifier = GlobalTimeManager.Instance != null ? GlobalTimeManager.Instance.gameTimeMultiplier : 1.0f;
 
-        transform.position = Vector3.MoveTowards(transform.position, targetPos, speed * Time.deltaTime * timeMod);
+        if (GlobalTimeManager.Instance != null)
+        {
+            player = GlobalTimeManager.Instance.player;
+            range = GlobalTimeManager.Instance.range;
+
+            if (player != null)
+            {
+                float distance = Vector2.Distance(transform.position, player.position);
+
+                // JEŚLI gracz jest w zasięgu -> pobieramy "zepsuty" czas
+                if (distance <= range)
+                {
+                    timeModifier = GlobalTimeManager.Instance.gameTimeMultiplier;
+                }
+            }
+        }
+
+        transform.position = Vector3.MoveTowards(transform.position, targetPos, speed * Time.deltaTime * timeModifier);
 
         // Sprawdzenie czy dotarliśmy
         if (Vector2.Distance(transform.position, targetPos) < 0.05f)

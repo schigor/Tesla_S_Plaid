@@ -11,12 +11,19 @@ public class GlobalTimeManager : MonoBehaviour
     // Mnożnik czasu dla reszty gry (przeciwnicy itp.)
     public float gameTimeMultiplier = 1.0f;
 
+
+    [Header("Zmieniane przez czas")]
+    public Transform player;
+    public float range = 5f; // Zwiększyłem domyślnie, 1f to bardzo blisko
+
     private void Awake()
     {
         if (Instance != null && Instance != this) Destroy(this.gameObject);
         else
         {
             Instance = this;
+            Instance.player = player;
+            Instance.range = range;
             DontDestroyOnLoad(this.gameObject);
         }
     }

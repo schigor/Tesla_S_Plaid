@@ -1,28 +1,41 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement; // <-- TO JEST KLUCZOWE! Bez tego zmiana scen nie zadziała.
 
 public class GameManager : MonoBehaviour
 {
-    // Miejsce, gdzie przypiszemy nasz tekst w Unity
+    // Miejsce, gdzie przypiszemy nasz tekst w Unity (opcjonalne, jeśli już tego nie używasz)
     public TextMeshProUGUI myText; 
 
-    // Ta funkcja musi być PUBLICZNA, żeby przycisk ją widział
+    // Funkcja dla przycisku START GAME
+    public void StartGame()
+    {
+        // Upewnij się, że nazwa sceny jest DOKŁADNIE taka sama (wielkość liter ma znaczenie!)
+        SceneManager.LoadScene("Poziom Dino");
+    }
+
+    // Funkcja dla przycisku TUTORIAL
+    public void OpenTutorial()
+    {
+        SceneManager.LoadScene("Tutorial");
+    }
+
+    // Twoja funkcja testowa
     public void ChangeMessage()
     {
-        myText.text = "Witaj w Unity!";
+        if(myText != null) 
+        {
+             myText.text = "Witaj w Unity!";
+        }
         Debug.Log("Przycisk został kliknięty!");
     }
     
+    // Funkcja wyjścia
     public void QuitGame()
     {
-        // Ta komenda zamyka zbudowaną aplikację
         Application.Quit();
-
-        // To wyświetli komunikat w konsoli Unity, żebyś wiedział, że przycisk działa
-        // (ponieważ Application.Quit nie zadziała w samym edytorze)
         Debug.Log("Gra została zamknięta! (Działa tylko w buildzie)");
         
-        // Opcjonalnie: Ten kod poniżej wymusi zatrzymanie gry w Edytorze Unity
         #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
         #endif

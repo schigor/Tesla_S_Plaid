@@ -7,6 +7,7 @@ public class PlayerHealth : MonoBehaviour
     [Header("Ustawienia")]
     [SerializeField] private Transform spawnPoint;
     [SerializeField] private string trapTag = "Trap";
+    [SerializeField] private string enemyTag = "Enemy";
 
     [Header("Efekt Tonęcia")]
     [SerializeField] private float sinkingTime = 0.5f; // Ile czasu postać wpada w lawę zanim zastygnie
@@ -40,6 +41,15 @@ public class PlayerHealth : MonoBehaviour
             StartCoroutine(DieSequence());
         }
     }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag(enemyTag) && !isDead)
+        {
+            StartCoroutine(DieSequence());
+        }
+    }
+
 
     private IEnumerator DieSequence()
     {

@@ -1,12 +1,13 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections;
 
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Ustawienia Ruchu")]
     [SerializeField] private float moveSpeed = 8f;
     [SerializeField] private float jumpForce = 16f;
+    [SerializeField] private float acceleration = 25f;
+    [SerializeField] private float friction = 20f;
 
     [Header("Wykrywanie Ziemi")]
     [SerializeField] private Transform groundCheck;
@@ -30,21 +31,22 @@ public class PlayerMovement : MonoBehaviour
     private bool isTouchingWall;
     private bool isWallSliding;
     private float wallJumpLockTimer;
+    private float currentVelocityX;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        rb.gravityScale = 1f;
+        rb.constraints = RigidbodyConstraints2D.FreezeRotation;
     }
 
     private void Update()
     {
         if (Keyboard.current == null) return;
 
-        // INPUT
         float moveLeft = Keyboard.current.aKey.isPressed ? -1f : 0f;
         float moveRight = Keyboard.current.dKey.isPressed ? 1f : 0f;
         
-        // Jeśli jesteśmy w wall jump lock, nie zmieniamy kierunku
         if (wallJumpLockTimer <= 0)
         {
             horizontalInput = moveLeft + moveRight;
@@ -54,46 +56,56 @@ public class PlayerMovement : MonoBehaviour
             wallJumpLockTimer -= Time.deltaTime;
         }
 
-        // JUMP REQUEST
         if (Keyboard.current.wKey.wasPressedThisFrame || Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             jumpRequested = true;
         }
 
-        // OBRÓT
         if (horizontalInput > 0 && !isFacingRight) Flip();
         if (horizontalInput < 0 && isFacingRight) Flip();
     }
 
     private void FixedUpdate()
     {
-        // WYKRYWANIE KOLIZJI
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, groundCheckRadius, wallLayer);
 
         float timeMod = GlobalTimeManager.Instance != null ? GlobalTimeManager.Instance.CurrentTimeMultiplier : 1.0f;
 
-        // LOGIKA WALL SLIDE
-        isWallSliding = isTouchingWall && !isGrounded && rb.linearVelocity.y <= 0;
+        // Sprawdź czy właśnie dotknęliśmy ściany
+        bool wasWallSliding = isWallSliding;
+        isWallSliding = isTouchingWall && !isGrounded;
 
-        // PRĘDKOŚĆ
+        // GŁADKA AKCELERACJA
+        float targetVelocity = 0f;
+        
         if (isWallSliding)
         {
-            // Wall slide: powolne opadanie
-            rb.linearVelocity = new Vector2(horizontalInput * moveSpeed * timeMod, -wallSlideSpeed * timeMod);
-        }
-        else if (isGrounded)
-        {
-            // Zwykły ruch na ziemi
-            rb.linearVelocity = new Vector2(horizontalInput * moveSpeed * timeMod, rb.linearVelocity.y);
+            currentVelocityX = 0f;
+            
+            // Jeśli właśnie dotknęliśmy ściany, resetuj Y
+            if (!wasWallSliding && rb.linearVelocity.y > 0)
+            {
+                rb.linearVelocity = new Vector2(0f, 0f);
+            }
+            
+            // Teraz aplij wall slide
+            rb.linearVelocity = new Vector2(0f, -wallSlideSpeed * timeMod);
         }
         else
         {
-            // Powietrze - zachowaj poprzednią prędkość X jeśli nie ma inputu
-            if (horizontalInput != 0)
+            targetVelocity = horizontalInput * moveSpeed * timeMod;
+            
+            if (Mathf.Abs(targetVelocity) > 0.01f)
             {
-                rb.linearVelocity = new Vector2(horizontalInput * moveSpeed * timeMod, rb.linearVelocity.y);
+                currentVelocityX = Mathf.Lerp(currentVelocityX, targetVelocity, acceleration * Time.fixedDeltaTime);
             }
+            else
+            {
+                currentVelocityX = Mathf.Lerp(currentVelocityX, 0f, friction * Time.fixedDeltaTime);
+            }
+
+            rb.linearVelocity = new Vector2(currentVelocityX, rb.linearVelocity.y);
         }
 
         // SKOKI
@@ -113,19 +125,16 @@ public class PlayerMovement : MonoBehaviour
 
     private void PerformWallJump()
     {
-        // Kierunek odbicia: przeciwny do kierunku w którym patrzymy
         float jumpDirX = isFacingRight ? -wallJumpHorizontal : wallJumpHorizontal;
         float jumpDirY = wallJumpVertical;
 
-        // Resetuj prędkość i aplikuj impuls
         rb.linearVelocity = Vector2.zero;
+        currentVelocityX = 0f;
         rb.AddForce(new Vector2(jumpDirX, jumpDirY), ForceMode2D.Impulse);
 
-        // Natychmiastowy obrót w kierunku skoku
         if (jumpDirX > 0 && !isFacingRight) Flip();
         if (jumpDirX < 0 && isFacingRight) Flip();
 
-        // Zablokuj input na moment
         wallJumpLockTimer = wallJumpInputLockTime;
     }
 

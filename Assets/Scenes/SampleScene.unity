@@ -18970,8 +18970,8 @@ GameObject:
   - component: {fileID: 674262216}
   - component: {fileID: 674262215}
   - component: {fileID: 674262214}
-  - component: {fileID: 674262218}
   - component: {fileID: 674262219}
+  - component: {fileID: 674262220}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -19020,6 +19020,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   moveSpeed: 7
   jumpForce: 7
+  acceleration: 25
+  friction: 20
   groundCheck: {fileID: 1224476729}
   groundCheckRadius: 0.3
   groundLayer:
@@ -19030,8 +19032,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   wallSlideSpeed: 2
-  wallJumpHorizontal: 10
-  wallJumpVertical: 16
+  wallJumpHorizontal: 6
+  wallJumpVertical: 6
   wallJumpInputLockTime: 0.2
 --- !u!212 &674262216
 SpriteRenderer:
@@ -19108,8 +19110,26 @@ Transform:
   - {fileID: 1615960542}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!61 &674262218
-BoxCollider2D:
+--- !u!114 &674262219
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 674262213}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3ba03714656fe43b4a62b348e8269e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
+  spawnPoint: {fileID: 139662222}
+  trapTag: Trap
+  sinkingTime: 0.5
+  lavaDrag: 10
+  gameOverText: {fileID: 1388691352}
+  freezeTime: 1
+--- !u!70 &674262220
+CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -19143,35 +19163,8 @@ BoxCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
-    newSize: {x: 1, y: 1}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
-  m_EdgeRadius: 0
---- !u!114 &674262219
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 674262213}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1e3ba03714656fe43b4a62b348e8269e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
-  spawnPoint: {fileID: 139662222}
-  trapTag: Trap
-  sinkingTime: 0.5
-  lavaDrag: 10
-  gameOverText: {fileID: 1388691352}
-  freezeTime: 1
+  m_Direction: 0
 --- !u!1 &1075397121
 GameObject:
   m_ObjectHideFlags: 0
@@ -21949,8 +21942,8 @@ Tilemap:
   - first: {x: 17, y: -2, z: 0}
     second:
       serializedVersion: 2
-      m_TileIndex: 9
-      m_TileSpriteIndex: 9
+      m_TileIndex: 13
+      m_TileSpriteIndex: 13
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -21959,8 +21952,8 @@ Tilemap:
   - first: {x: 24, y: -2, z: 0}
     second:
       serializedVersion: 2
-      m_TileIndex: 9
-      m_TileSpriteIndex: 9
+      m_TileIndex: 13
+      m_TileSpriteIndex: 13
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -22856,15 +22849,15 @@ Tilemap:
     m_Data: {fileID: 11400000, guid: 38d7b0d5c23846b48b102042ed2698dc, type: 2}
   - m_RefCount: 12
     m_Data: {fileID: 11400000, guid: 29f6ce9e02bf9e743a0020effaed0a73, type: 2}
-  - m_RefCount: 2
-    m_Data: {fileID: 11400000, guid: 277b03e653ef45c4e9ca189034e5ca53, type: 2}
+  - m_RefCount: 0
+    m_Data: {fileID: 0}
   - m_RefCount: 2
     m_Data: {fileID: 11400000, guid: f546ff978c6b15c4b82f4574f50dc684, type: 2}
   - m_RefCount: 11
     m_Data: {fileID: 11400000, guid: 083a9bfc0eff28d41aed693478245216, type: 2}
   - m_RefCount: 2
     m_Data: {fileID: 11400000, guid: 29321fa41a36ca34e918ffe3df936f11, type: 2}
-  - m_RefCount: 9
+  - m_RefCount: 11
     m_Data: {fileID: 11400000, guid: a3ad7c411e464a244923c38d7819bb90, type: 2}
   - m_RefCount: 2
     m_Data: {fileID: 11400000, guid: 651637b1fd9ff55478f22e147088d387, type: 2}
@@ -22897,15 +22890,15 @@ Tilemap:
     m_Data: {fileID: -1379200599, guid: 6796737a06df555439675476dfd1f9a1, type: 3}
   - m_RefCount: 12
     m_Data: {fileID: -1095868408, guid: 6796737a06df555439675476dfd1f9a1, type: 3}
-  - m_RefCount: 2
-    m_Data: {fileID: -1593470939, guid: 6796737a06df555439675476dfd1f9a1, type: 3}
+  - m_RefCount: 0
+    m_Data: {fileID: 0}
   - m_RefCount: 2
     m_Data: {fileID: -1531773546, guid: 6796737a06df555439675476dfd1f9a1, type: 3}
   - m_RefCount: 11
     m_Data: {fileID: 724118998, guid: 6796737a06df555439675476dfd1f9a1, type: 3}
   - m_RefCount: 2
     m_Data: {fileID: 379061200, guid: 6796737a06df555439675476dfd1f9a1, type: 3}
-  - m_RefCount: 9
+  - m_RefCount: 11
     m_Data: {fileID: -1670307874, guid: 6796737a06df555439675476dfd1f9a1, type: 3}
   - m_RefCount: 2
     m_Data: {fileID: 230402521, guid: 6796737a06df555439675476dfd1f9a1, type: 3}

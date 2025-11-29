@@ -111,6 +111,26 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    // Wykrycie wejścia na platformę
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("MovingPlatform"))
+        {
+            // Ustawiamy platformę jako rodzica gracza
+            transform.SetParent(collision.transform);
+        }
+    }
+
+    // Wykrycie zejścia z platformy
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("MovingPlatform"))
+        {
+            // Usuwamy rodzica (gracz wraca do "świata")
+            transform.SetParent(null);
+        }
+    }
+
     private void FixedUpdate()
     {
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);

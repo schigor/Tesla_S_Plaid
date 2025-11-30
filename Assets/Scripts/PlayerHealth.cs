@@ -26,7 +26,10 @@ public class PlayerHealth : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         movementScript = GetComponent<PlayerMovement>();
-        defaultDrag = rb.linearDamping; // Zapisujemy standardowy opór
+        
+        // Unity 6 używa 'linearDamping', starsze wersje 'drag'. 
+        // Skoro używasz linearDamping, zakładam że masz Unity 6.
+        defaultDrag = rb.linearDamping; 
     }
 
     private void Start()
@@ -50,29 +53,27 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-
     private IEnumerator DieSequence()
     {
         isDead = true;
 
         // --- ETAP 1: WPADANIE (TONIĘCIE) ---
         
-        // 1. Odcinamy sterowanie (żeby gracz nie mógł wyskoczyć z lawy)
+        // 1. Odcinamy sterowanie
         if (movementScript != null) movementScript.enabled = false;
 
-        // 2. Zmieniamy fizykę na "kisiel" (duży opór, powolne opadanie)
-        rb.linearVelocity = new Vector2(0, rb.linearVelocity.y); // Zerujemy ruch na boki, zostawiamy spadanie
+        // 2. Zmieniamy fizykę na "kisiel"
+        rb.linearVelocity = new Vector2(0, rb.linearVelocity.y); 
         rb.linearDamping = lavaDrag; 
 
-        // 3. Czekamy, aż gracz się zanurzy (fizyka nadal działa!)
+        // 3. Czekamy na zanurzenie
         yield return new WaitForSeconds(sinkingTime);
-
 
         // --- ETAP 2: ZAMROŻENIE I NAPIS ---
 
-        // 4. Całkowite zamrożenie (Freeze)
+        // 4. Całkowite zamrożenie
         rb.linearVelocity = Vector2.zero;
-        rb.simulated = false; // Wyłączamy fizykę całkowicie
+        rb.simulated = false; // Wyłączamy fizykę
 
         // 5. Pokazujemy napis
         if (gameOverText != null)
@@ -81,31 +82,38 @@ public class PlayerHealth : MonoBehaviour
             gameOverText.text = "YOU DIED";
         }
 
-        // 6. Czekamy (patrząc na napis)
+        // 6. Czekamy patrząc na napis
         yield return new WaitForSeconds(freezeTime);
 
+        // --- ETAP 3: RESPAWN I RESET ---
 
-        // --- ETAP 3: RESPAWN ---
+        // 7. RESETOWANIE PUŁAPEK (Falling Blocks) - TO JEST NOWOŚĆ
+        // Szukamy wszystkich bloków, nawet tych wyłączonych (SetActive false)
+        FallingBlock[] blocks = FindObjectsByType<FallingBlock>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        
+        foreach (var block in blocks)
+        {
+            block.ResetBlock();
+        }
 
-        // 7. Przenosimy gracza
+        // 8. Przenosimy gracza
         transform.position = spawnPoint.position;
         
-        // 8. Przywracamy ustawienia fizyki
+        // 9. Przywracamy ustawienia fizyki
         rb.simulated = true;
-        rb.linearDamping = defaultDrag; // Przywracamy normalny opór powietrza
+        rb.linearDamping = defaultDrag; 
         rb.linearVelocity = Vector2.zero;
 
-        // 9. Resetujemy Chaos Czasu
-        /*if (GlobalTimeManager.Instance != null)
+        // 10. Resetujemy Chaos Czasu (odkomentuj jeśli chcesz)
+        if (GlobalTimeManager.Instance != null)
         {
-            GlobalTimeManager.Instance.ResetChaos();
-        }*/
+            // GlobalTimeManager.Instance.ResetChaos();
+        }
 
-        // 10. Sprzątamy UI i oddajemy sterowanie
+        // 11. Sprzątamy UI i oddajemy sterowanie
         if (gameOverText != null) gameOverText.gameObject.SetActive(false);
         if (movementScript != null) movementScript.enabled = true;
 
         isDead = false;
     }
-    
 }

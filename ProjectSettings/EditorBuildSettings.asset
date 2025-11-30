@@ -9,17 +9,17 @@ EditorBuildSettings:
     path: Assets/Scenes/Menu.unity
     guid: 516d9c65c7b2f684090d5b0949312ea9
   - enabled: 1
+    path: Assets/Scenes/TUTORIAL.unity
+    guid: f4aafea2c60d2f747bdfe58169dfdcf8
+  - enabled: 1
     path: Assets/Scenes/Poziom Dino.unity
     guid: 5c8bc671ad442b140906efac74d85ba6
-  - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 8c9cfa26abfee488c85f1582747f6a02
   - enabled: 1
     path: Assets/Scenes/SampleScene 1.unity
     guid: 14ffbdfac84b2da49b8c83d45c6df2bf
   - enabled: 1
-    path: Assets/Scenes/TUTORIAL.unity
-    guid: f4aafea2c60d2f747bdfe58169dfdcf8
+    path: Assets/Scenes/SampleScene.unity
+    guid: 8c9cfa26abfee488c85f1582747f6a02
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

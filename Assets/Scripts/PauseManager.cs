@@ -1,23 +1,32 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.InputSystem;
+using UnityEngine.InputSystem; // 1. Ważne: Nowy system wejścia
 
 public class PauseManager : MonoBehaviour
 {
-    public GameObject pausePanel; // Tutaj przypiszemy nasz Panel (Czarne tło)
+    [Header("UI")]
+    [Tooltip("Przeciągnij tutaj cały obiekt panelu pauzy (tło + przyciski)")]
+    public GameObject pausePanel; 
+
     private bool isPaused = false;
 
     void Start()
     {
-        // Na starcie gry upewniamy się, że panel jest ukryty
-        pausePanel.SetActive(false);
-        Time.timeScale = 1f; // Upewniamy się, że czas płynie
+        // Na starcie ukrywamy menu i upewniamy się, że gra chodzi
+        if (pausePanel != null)
+        {
+            pausePanel.SetActive(false);
+        }
+        Time.timeScale = 1f;
     }
 
     void Update()
     {
-        // Jeśli wciśnięto ESC
-        if (Input.GetKeyDown(KeyCode.Escape))
+        // Zabezpieczenie: sprawdź czy klawiatura jest podłączona
+        if (Keyboard.current == null) return;
+
+        // 2. NOWY SYSTEM: Sprawdzamy klawisz ESC (Escape)
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             if (isPaused)
             {
@@ -28,42 +37,49 @@ public class PauseManager : MonoBehaviour
                 PauseGame();
             }
         }
-    }
-
-    public void RestartLevel()
-    {
-        // 1. Najważniejsze: Odmrażamy czas, bo inaczej nowa gra będzie stała w miejscu
-        Time.timeScale = 1f;
         
-        // 2. Pobieramy nazwę aktualnej sceny, na której jesteśmy
-        string currentSceneName = SceneManager.GetActiveScene().name;
-        
-        // 3. Ładujemy ją ponownie
-        SceneManager.LoadScene(currentSceneName);
+        // Opcjonalnie: Szybki restart pod klawiszem R
+        if (Keyboard.current.rKey.wasPressedThisFrame)
+        {
+            RestartLevel();
+        }
     }
 
     public void ResumeGame()
     {
-        pausePanel.SetActive(false); // Ukryj panel
-        Time.timeScale = 1f;         // Czas start
+        if (pausePanel != null) pausePanel.SetActive(false);
+        Time.timeScale = 1f; // Odmrażamy czas
         isPaused = false;
     }
 
     void PauseGame()
     {
-        pausePanel.SetActive(true);  // Pokaż panel
-        Time.timeScale = 0f;         // Czas stop (zamrożenie gry)
+        if (pausePanel != null) pausePanel.SetActive(true);
+        Time.timeScale = 0f; // Zamrażamy czas (fizyka i update stają)
         isPaused = true;
+    }
+
+    public void RestartLevel()
+    {
+        // 1. Odmrażamy fizykę (to nadal ważne!)
+        Time.timeScale = 1f;
+        
+        // 2. Nie musimy już resetować TimeManagera, bo on zginie razem ze sceną
+        // i nowy stworzy się w nowej scenie.
+
+        // 3. Ładujemy scenę
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void GoToMenu()
     {
-        Time.timeScale = 1f; // BARDZO WAŻNE: Odmrażamy czas przed zmianą sceny!
-        SceneManager.LoadScene("Menu");
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("Menu"); 
     }
 
     public void QuitGame()
     {
+        Debug.Log("Wychodzenie z gry..."); // Widać tylko w edytorze
         Application.Quit();
     }
 }

@@ -1,8 +1,9 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
+using UnityEngine.SceneManagement; // 1. WAŻNE: Dodane do zmiany scen
 
-[RequireComponent(typeof(SpriteRenderer))] // Wymaga komponentu SpriteRenderer
+[RequireComponent(typeof(SpriteRenderer))]
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Ustawienia Ruchu")]
@@ -27,16 +28,12 @@ public class PlayerMovement : MonoBehaviour
     [Header("Ladder System")]
     [SerializeField] private LayerMask ladderLayer;
     [SerializeField] private float climbSpeed = 5f;
-    // Usunięto ladderCenteringSpeed, bo chcemy swobodny ruch
     
     private bool isTouchingLadder;
     private bool isClimbing;
     private float verticalInput;
     private float originalGravityScale;
     
-    // Używamy IsTouchingLayers zamiast Triggerów dla większej stabilności przy ruchu na boki
-    // (Dzięki temu jak wyjdziesz kawałkiem poza drabinę, to nadal się wspinasz, póki dotykasz)
-
     [Header("Sterowanie Czasem")]
     [SerializeField] private float timeMultiplierSlow = 0.25f;
     [SerializeField] private float timeMultiplierNormal = 1.0f;
@@ -46,15 +43,13 @@ public class PlayerMovement : MonoBehaviour
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI timeSpeedText;
 
-    // --- NOWE: Sekcja Animacji ---
     [Header("Animacje (Sprite'y)")]
-    [SerializeField] private Sprite idleSprite;      // Stoi
-    [SerializeField] private Sprite runSprite;       // Biegnie
-    [SerializeField] private Sprite jumpSprite;      // Skacze
-    [SerializeField] private Sprite wallSlideSprite; // Ślizga się po ścianie (opcjonalne)
+    [SerializeField] private Sprite idleSprite;      
+    [SerializeField] private Sprite runSprite;       
+    [SerializeField] private Sprite jumpSprite;      
+    [SerializeField] private Sprite wallSlideSprite; 
 
     private SpriteRenderer spriteRenderer;
-    // -----------------------------
 
     private Rigidbody2D rb;
     private float horizontalInput;
@@ -70,13 +65,9 @@ public class PlayerMovement : MonoBehaviour
     private int currentTimeState = 1;
     private float targetTimeMultiplier = 1.0f;
 
-
-
-
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        // Pobieramy SpriteRenderer, żeby móc zmieniać obrazki
         spriteRenderer = GetComponent<SpriteRenderer>();
 
         rb.gravityScale = 1f;
@@ -105,7 +96,6 @@ public class PlayerMovement : MonoBehaviour
         
         if (isClimbing)
         {
-             // Na drabinie skaczemy tylko spacją
              if (Keyboard.current.spaceKey.wasPressedThisFrame) jumpRequested = true;
         }
         else if (jumpKey)
@@ -136,28 +126,50 @@ public class PlayerMovement : MonoBehaviour
     {
         if (spriteRenderer == null) return;
 
-        // 1. Priorytet: Ślizganie po ścianie
         if (isWallSliding)
         {
             if (wallSlideSprite != null) spriteRenderer.sprite = wallSlideSprite;
-            else if (jumpSprite != null) spriteRenderer.sprite = jumpSprite; // Fallback
+            else if (jumpSprite != null) spriteRenderer.sprite = jumpSprite;
         }
-        // 2. Priorytet: Skakanie / Spadanie (gdy nie jest na ziemi)
-        else if (!isGrounded)
+        else if (!isGrounded && !isClimbing)
         {
             if (jumpSprite != null) spriteRenderer.sprite = jumpSprite;
         }
-        // 3. Priorytet: Bieganie (jest na ziemi i wciśnięto klawisz ruchu)
         else if (Mathf.Abs(horizontalInput) > 0.1f)
         {
             if (runSprite != null) spriteRenderer.sprite = runSprite;
         }
-        // 4. Priorytet: Stanie w miejscu (jest na ziemi, brak ruchu)
         else
         {
             if (idleSprite != null) spriteRenderer.sprite = idleSprite;
         }
     }
+
+    // --- NOWOŚĆ: OBSŁUGA FINISHU (PRZEJŚCIE DO NOWEJ SCENY) ---
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Finish"))
+        {
+            // 1. Resetujemy czas do normalnej prędkości (krytyczne!)
+            Time.timeScale = 1f;
+            if (GlobalTimeManager.Instance != null) GlobalTimeManager.Instance.gameTimeMultiplier = 1.0f;
+
+            // 2. Ładujemy następną scenę
+            int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+            int nextSceneIndex = currentSceneIndex + 1;
+
+            if (nextSceneIndex < SceneManager.sceneCountInBuildSettings)
+            {
+                SceneManager.LoadScene(nextSceneIndex);
+            }
+            else
+            {
+                Debug.Log("Koniec Gry! Wracam do menu (Scena 0).");
+                SceneManager.LoadScene(0);
+            }
+        }
+    }
+    // -----------------------------------------------------------
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -169,15 +181,11 @@ public class PlayerMovement : MonoBehaviour
         if (collision.gameObject.CompareTag("MovingPlatform")) transform.SetParent(null);
     }
 
-
-
     private void FixedUpdate()
     {
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, groundCheckRadius, wallLayer);
 
-        // --- ZMIANA: Wracamy do IsTouchingLayers ---
-        // To jest lepsze przy chodzeniu na boki, bo nie gubi referencji przy wyjściu z Triggera
         isTouchingLadder = rb.IsTouchingLayers(ladderLayer);
         
         CheckClimbingState();
@@ -196,7 +204,6 @@ public class PlayerMovement : MonoBehaviour
             return; 
         }
 
-        // Standardowa fizyka
         bool wasWallSliding = isWallSliding;
         isWallSliding = isTouchingWall && !isGrounded && !isClimbing;
 
@@ -227,13 +234,11 @@ public class PlayerMovement : MonoBehaviour
 
     private void CheckClimbingState()
     {
-        // Wchodzimy, jeśli dotykamy drabiny i naciskamy W/S
         if (isTouchingLadder && Mathf.Abs(verticalInput) > 0.01f)
         {
             isClimbing = true;
             rb.gravityScale = 0f; 
         }
-        // Jeśli przestaliśmy dotykać drabiny (np. wyszliśmy bokiem), spadamy
         else if (!isTouchingLadder && isClimbing)
         {
             isClimbing = false;
@@ -243,15 +248,8 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleClimbingMovement()
     {
-        // --- ZMIANA: Pełna kontrola X i Y ---
         float yVelocity = verticalInput * climbSpeed;
-        
-        // Teraz horizontalInput (A/D) normalnie steruje ruchem na boki
         float xVelocity = horizontalInput * moveSpeed; 
-        
-        // Możesz opcjonalnie zmniejszyć prędkość na boki podczas wspinania:
-        // float xVelocity = horizontalInput * moveSpeed * 0.7f;
-
         rb.linearVelocity = new Vector2(xVelocity, yVelocity);
     }
 

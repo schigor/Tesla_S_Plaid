@@ -10,6 +10,12 @@ public class GameManager : MonoBehaviour
     // Funkcja dla przycisku START GAME
     public void StartGame()
     {
+        if (SpeedrunManager.Instance != null)
+    {
+        SpeedrunManager.Instance.ResetTimer();
+    }
+    
+
         // Upewnij się, że nazwa sceny jest DOKŁADNIE taka sama (wielkość liter ma znaczenie!)
         SceneManager.LoadScene("Poziom Dino");
     }

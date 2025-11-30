@@ -8,24 +8,21 @@ public class GlobalTimeManager : MonoBehaviour
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI timeMultiplierText;
 
-    // Mnożnik czasu dla reszty gry (przeciwnicy itp.)
+    // Mnożnik czasu startuje zawsze od 1.0 po restarcie
     public float gameTimeMultiplier = 1.0f;
 
-
     [Header("Zmieniane przez czas")]
-    public Transform player;
-    public float range = 5f; // Zwiększyłem domyślnie, 1f to bardzo blisko
+    public Transform player; // Możesz to przypisać w Inspectorze w każdej scenie
+    public float range = 5f;
 
     private void Awake()
     {
-        if (Instance != null && Instance != this) Destroy(this.gameObject);
-        else
-        {
-            Instance = this;
-            Instance.player = player;
-            Instance.range = range;
-            DontDestroyOnLoad(this.gameObject);
-        }
+        // Po prostu przypisujemy instancję.
+        // Nowa scena = Nowy Manager = Nowa Instancja.
+        Instance = this;
+        
+        // USUNĘLIŚMY DontDestroyOnLoad(this.gameObject);
+        // Dzięki temu ten obiekt zginie przy zmianie sceny.
     }
 
     private void Update()

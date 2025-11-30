@@ -70,6 +70,9 @@ public class PlayerMovement : MonoBehaviour
     private int currentTimeState = 1;
     private float targetTimeMultiplier = 1.0f;
 
+
+
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -125,6 +128,35 @@ public class PlayerMovement : MonoBehaviour
             if (horizontalInput > 0 && !isFacingRight) Flip();
             if (horizontalInput < 0 && isFacingRight) Flip();
         }
+
+        HandleAnimations();
+    }
+
+    private void HandleAnimations()
+    {
+        if (spriteRenderer == null) return;
+
+        // 1. Priorytet: Ślizganie po ścianie
+        if (isWallSliding)
+        {
+            if (wallSlideSprite != null) spriteRenderer.sprite = wallSlideSprite;
+            else if (jumpSprite != null) spriteRenderer.sprite = jumpSprite; // Fallback
+        }
+        // 2. Priorytet: Skakanie / Spadanie (gdy nie jest na ziemi)
+        else if (!isGrounded)
+        {
+            if (jumpSprite != null) spriteRenderer.sprite = jumpSprite;
+        }
+        // 3. Priorytet: Bieganie (jest na ziemi i wciśnięto klawisz ruchu)
+        else if (Mathf.Abs(horizontalInput) > 0.1f)
+        {
+            if (runSprite != null) spriteRenderer.sprite = runSprite;
+        }
+        // 4. Priorytet: Stanie w miejscu (jest na ziemi, brak ruchu)
+        else
+        {
+            if (idleSprite != null) spriteRenderer.sprite = idleSprite;
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -136,6 +168,8 @@ public class PlayerMovement : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("MovingPlatform")) transform.SetParent(null);
     }
+
+
 
     private void FixedUpdate()
     {

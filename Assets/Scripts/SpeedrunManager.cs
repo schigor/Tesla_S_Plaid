@@ -6,6 +6,7 @@ public class SpeedrunManager : MonoBehaviour
 
     public float TotalTime { get; private set; }
     public bool IsRunning { get; private set; }
+    public float BestTime { get; private set; }
 
     private void Awake()
     {
@@ -56,5 +57,10 @@ public class SpeedrunManager : MonoBehaviour
         int milliseconds = Mathf.FloorToInt((TotalTime * 100) % 100);
 
         return string.Format("{0:00}:{1:00}.{2:00}", minutes, seconds, milliseconds);
+    }
+
+    public bool IsBestTime()
+    {
+        return TotalTime < BestTime || BestTime == 0f;
     }
 }

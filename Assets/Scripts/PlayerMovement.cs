@@ -162,6 +162,11 @@ public class PlayerMovement : MonoBehaviour
             {
                 SceneManager.LoadScene(nextSceneIndex);
             }
+
+            else if (currentSceneIndex == 4)
+            {
+                Debug.Log("Koniec Gry! Gratulacje");
+            }
             else
             {
                 Debug.Log("Koniec Gry! Wracam do menu (Scena 0).");

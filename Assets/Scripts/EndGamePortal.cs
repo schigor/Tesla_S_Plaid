@@ -7,6 +7,18 @@ public class EndGamePortal : MonoBehaviour
     [SerializeField] private GameObject winScreenPanel;
     [SerializeField] private TextMeshProUGUI finalTimeText;
 
+
+ void Start()
+    {
+   
+        if (winScreenPanel != null)
+        {
+            winScreenPanel.SetActive(false);
+        }
+        
+    }
+
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player"))
@@ -28,7 +40,7 @@ public class EndGamePortal : MonoBehaviour
             // 3. Wyświetlamy
             if (finalTimeText != null)
             {
-                finalTimeText.text = "Twój czas: " + timeString;
+                finalTimeText.text = "Your time: " + timeString ;
             }
         }
 

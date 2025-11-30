@@ -26,25 +26,23 @@ public class MovingPlatform : MonoBehaviour
     {
         // Jeśli aktualnie czekamy, nie wykonuj ruchu
         if (isWaiting) return;
+        timeModifier = 1.0f;
 
-        // Ruch platformy
-        float timeModifier = GlobalTimeManager.Instance != null ? GlobalTimeManager.Instance.gameTimeMultiplier : 1.0f;
 
         if (GlobalTimeManager.Instance != null)
         {
             player = GlobalTimeManager.Instance.player;
             range = GlobalTimeManager.Instance.range;
 
-            if (player != null)
-            {
-                float distance = Vector2.Distance(transform.position, player.position);
+            waitTime = 1f / GlobalTimeManager.Instance.gameTimeMultiplier;
+            float distance = Vector2.Distance(transform.position, player.position);
 
                 // JEŚLI gracz jest w zasięgu -> pobieramy "zepsuty" czas
                 if (distance <= range)
                 {
                     timeModifier = GlobalTimeManager.Instance.gameTimeMultiplier;
                 }
-            }
+            
         }
 
         transform.position = Vector3.MoveTowards(transform.position, targetPos, speed * Time.deltaTime * timeModifier);

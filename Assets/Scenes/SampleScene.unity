@@ -22193,7 +22193,7 @@ GameObject:
   - component: {fileID: 397707266}
   - component: {fileID: 397707265}
   - component: {fileID: 397707264}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Falling Block2
   m_TagString: Untagged
   m_Icon: {fileID: 0}

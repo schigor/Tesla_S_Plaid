@@ -40,7 +40,7 @@ public class EndGamePortal : MonoBehaviour
             // 3. Wyświetlamy
             if (finalTimeText != null)
             {
-                finalTimeText.text = "Your time: " + timeString ;
+                finalTimeText.text = "Your time: " + timeString + (SpeedrunManager.Instance.IsBestTime() ? " New Best!" : "");
             }
         }
 

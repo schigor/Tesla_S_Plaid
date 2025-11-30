@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class CrushingPress : MonoBehaviour
 {
@@ -151,7 +152,7 @@ public class CrushingPress : MonoBehaviour
                 playerRb.linearVelocity = Vector2.zero;
                 playerRb.simulated = false; 
             }
-
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
             playerMovement.transform.position = playerSpawnPoint.position;
             StartCoroutine(ResetPlayerPhysics(playerRb));
         }

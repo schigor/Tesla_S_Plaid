@@ -31,7 +31,7 @@ public class GlobalTimeManager : MonoBehaviour
         {
             timeMultiplierText.text = $"Time Speed: {gameTimeMultiplier:F2}x";
             
-            if (gameTimeMultiplier > 1.0f) timeMultiplierText.color = Color.red;
+            if (gameTimeMultiplier > 1.01f) timeMultiplierText.color = Color.red;
             else timeMultiplierText.color = Color.cyan;
         }
     }
